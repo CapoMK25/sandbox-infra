@@ -25,7 +25,7 @@ resource "aws_s3_bucket" "tfstate" {
   }
 
   tags = {
-    Name    = "terraform-state"
+    Name    = "terraform-state-sandbox"
     Purpose = "Terraform remote state storage"
   }
 }
@@ -71,7 +71,7 @@ resource "aws_dynamodb_table" "tfstate_lock" {
   }
 
   tags = {
-    Name    = "terraform-state-lock"
+    Name    = "terraform-state-lock-sandbox"
     Purpose = "Terraform state locking"
   }
 }
