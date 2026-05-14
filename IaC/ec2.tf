@@ -1,13 +1,13 @@
 # -----------------------------------------------------------------------------
 # EC2 Instance — Amazon Linux 2023 with Nginx
 # -----------------------------------------------------------------------------
-resource "aws_instance" "web" {
+resource "aws_instance" "regional_map_server" {
   ami                    = data.aws_ami.al2023.id
   instance_type          = var.instance_type
   subnet_id              = data.aws_subnets.default.ids[0]
-  vpc_security_group_ids = [aws_security_group.web.id]
+  vpc_security_group_ids = [aws_security_group.regional_map_server.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm.name
-  key_name               = aws_key_pair.web.key_name
+  key_name               = aws_key_pair.regional_map_server.key_name
 
   # Nginx bootstrap — instance comes up ready to serve content
   user_data = <<-EOF
@@ -45,7 +45,7 @@ resource "aws_instance" "web" {
   }
 
   metadata_options {
-    http_tokens   = "required" # IMDSv2 only — security best practice
+    http_tokens   = "required" # IMDSv2 only, security best practice
     http_endpoint = "enabled"
   }
 
@@ -58,8 +58,8 @@ resource "aws_instance" "web" {
 # -----------------------------------------------------------------------------
 # Elastic IP, Keeps the same public IP across stop/start cycles
 # -----------------------------------------------------------------------------
-resource "aws_eip" "web" {
-  instance = aws_instance.web.id
+resource "aws_eip" "regional_map_server" {
+  instance = aws_instance.regional_map_server.id
   domain   = "vpc"
 
   tags = {
@@ -72,14 +72,14 @@ resource "aws_eip" "web" {
 # PEM key pair setup as output
 # -----------------------------------------------------------------------------
 
-resource "tls_private_key" "web" {
+resource "tls_private_key" "regional_map_server" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-resource "aws_key_pair" "web" {
+resource "aws_key_pair" "regional_map_server" {
   key_name   = "${var.project_name}-key"
-  public_key = tls_private_key.web.public_key_openssh
+  public_key = tls_private_key.regional_map_server.public_key_openssh
 
   tags = {
     Name    = "${var.project_name}-key"
@@ -89,6 +89,6 @@ resource "aws_key_pair" "web" {
 
 output "private_key_pem" {
   description = "Private key, save this to a .pem file preferably locally"
-  value       = tls_private_key.web.private_key_pem
+  value       = tls_private_key.regional_map_server.private_key_pem
   sensitive   = true
 }
