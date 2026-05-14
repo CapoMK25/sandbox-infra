@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Security Group — Regional Map 2024 Portfolio Server
 # -----------------------------------------------------------------------------
-resource "aws_security_group" "web" {
+resource "aws_security_group" "regional_map_server" {
   name        = "${var.project_name}-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic for the portfolio/regional-map-2024 server"
   vpc_id      = data.aws_vpc.default.id
@@ -15,7 +15,7 @@ resource "aws_security_group" "web" {
 # --- Ingress rules --------------------
 
 resource "aws_vpc_security_group_ingress_rule" "http" {
-  security_group_id = aws_security_group.web.id
+  security_group_id = aws_security_group.regional_map_server.id
   description       = "Allow HTTP from anywhere"
   ip_protocol       = "tcp"
   from_port         = 80
@@ -26,7 +26,7 @@ resource "aws_vpc_security_group_ingress_rule" "http" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "https" {
-  security_group_id = aws_security_group.web.id
+  security_group_id = aws_security_group.regional_map_server.id
   description       = "Allow HTTPS from anywhere"
   ip_protocol       = "tcp"
   from_port         = 443
@@ -39,7 +39,7 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   for_each = toset(var.allowed_ssh_cidrs)
 
-  security_group_id = aws_security_group.web.id
+  security_group_id = aws_security_group.regional_map_server.id
   description       = "Allow SSH from ${each.value}"
   ip_protocol       = "tcp"
   from_port         = 22
@@ -52,7 +52,7 @@ resource "aws_vpc_security_group_ingress_rule" "ssh" {
 # --- Egress rule -------------------------------------------------------------
 
 resource "aws_vpc_security_group_egress_rule" "all_outbound" {
-  security_group_id = aws_security_group.web.id
+  security_group_id = aws_security_group.regional_map_server.id
   description       = "Allow all outbound traffic"
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"

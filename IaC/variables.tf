@@ -17,7 +17,7 @@ variable "project_name" {
 }
 
 variable "allowed_ssh_cidrs" {
-  description = "CIDR blocks allowed to SSH into the instance (set to your IP for security)"
+  description = "CIDR blocks allowed to SSH into the instance"
   type        = list(string)
   default     = ["85.76.104.53/32"] # Replace with your actual IP address in CIDR format
 }
