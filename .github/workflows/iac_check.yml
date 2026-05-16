@@ -1,0 +1,128 @@
+name: Terraform IaC Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'IaC/**'
+      - '.github/workflows/iac_check.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_WORKING_DIR: IaC
+  AWS_REGION: eu-north-1
+
+jobs:
+  terraform-check:
+    name: Validate & Plan
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      # -----------------------------------------------------------------
+      # 1. Checkout the repo
+      # -----------------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------
+      # 2. Set up Terraform
+      # -----------------------------------------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.5"
+
+      # -----------------------------------------------------------------
+      # 3. Configure AWS credentials
+      # -----------------------------------------------------------------
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # -----------------------------------------------------------------
+      # 4. Terraform Format Check
+      # -----------------------------------------------------------------
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      # -----------------------------------------------------------------
+      # 5. Terraform Init
+      # -----------------------------------------------------------------
+      - name: Terraform Init
+        id: init
+        run: terraform init -input=false
+
+      # -----------------------------------------------------------------
+      # 6. Terraform Validate
+      # -----------------------------------------------------------------
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # -----------------------------------------------------------------
+      # 7. Terraform Plan
+      # -----------------------------------------------------------------
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      # -----------------------------------------------------------------
+      # 8. Post results as PR comment
+      # -----------------------------------------------------------------
+      - name: Post PR Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fmt = '${{ steps.fmt.outcome }}';
+            const init = '${{ steps.init.outcome }}';
+            const validate = '${{ steps.validate.outcome }}';
+            const plan = '${{ steps.plan.outcome }}';
+
+            const icon = (s) => s === 'success' ? '✅' : '❌';
+
+            const body = `## Terraform IaC Check Results
+
+            | Step | Status |
+            |------|--------|
+            | Format | ${icon(fmt)} \`${fmt}\` |
+            | Init | ${icon(init)} \`${init}\` |
+            | Validate | ${icon(validate)} \`${validate}\` |
+            | Plan | ${icon(plan)} \`${plan}\` |
+
+            <details><summary>Show Plan Output</summary>
+
+            \`\`\`terraform
+            ${{ steps.plan.outputs.stdout || steps.plan.outputs.stderr }}
+            \`\`\`
+
+            </details>`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      # -----------------------------------------------------------------
+      # 9. Fail the workflow entirely if the plan failed
+      # -----------------------------------------------------------------
+      - name: Check Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
