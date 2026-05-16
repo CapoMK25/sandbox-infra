@@ -139,13 +139,16 @@ resource "aws_iam_policy" "github_actions_terraform" {
         Sid    = "IAMAccess"
         Effect = "Allow"
         Action = [
+          "iam:GetUser",
           "iam:GetRole",
           "iam:GetPolicy",
+          "iam:GetPolicyVersion",
           "iam:GetInstanceProfile",
           "iam:GetRolePolicy",
           "iam:ListRolePolicies",
           "iam:ListAttachedRolePolicies",
           "iam:ListInstanceProfilesForRole",
+          "iam:ListAccessKeys",
           "iam:CreateRole",
           "iam:DeleteRole",
           "iam:CreateInstanceProfile",
@@ -156,12 +159,17 @@ resource "aws_iam_policy" "github_actions_terraform" {
           "iam:DetachRolePolicy",
           "iam:PassRole",
           "iam:TagRole",
-          "iam:TagInstanceProfile"
+          "iam:TagInstanceProfile",
+          "iam:ListAttachedUserPolicies",
+          "iam:ListUserPolicies",
+          "iam:ListUserTags"
         ]
         Resource = [
           "arn:aws:iam::452138317873:role/${var.project_name}-*",
           "arn:aws:iam::452138317873:instance-profile/${var.project_name}-*",
-          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+          "arn:aws:iam::452138317873:user/ci/github-actions-ci",
+          "arn:aws:iam::452138317873:policy/ci/github-actions-terraform-ci"
         ]
       },
       # STS for caller identity checks
