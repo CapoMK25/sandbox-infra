@@ -159,7 +159,10 @@ resource "aws_iam_policy" "github_actions_terraform" {
           "iam:DetachRolePolicy",
           "iam:PassRole",
           "iam:TagRole",
-          "iam:TagInstanceProfile"
+          "iam:TagInstanceProfile",
+          "iam:ListAttachedUserPolicies",
+          "iam:ListUserPolicies",
+          "iam:ListUserTags"
         ]
         Resource = [
           "arn:aws:iam::452138317873:role/${var.project_name}-*",
