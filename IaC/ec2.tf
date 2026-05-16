@@ -2,7 +2,7 @@
 # EC2 Instance — Amazon Linux 2023 with Nginx
 # -----------------------------------------------------------------------------
 resource "aws_instance" "regional_map_server" {
-  ami                    = data.aws_ami.al2023.id
+  ami                    = "ami-063f61adbae382edf" # hardcoded AMI to avoid re-deployment every time there's a new AMI
   instance_type          = var.instance_type
   subnet_id              = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.regional_map_server.id]
@@ -47,6 +47,11 @@ resource "aws_instance" "regional_map_server" {
   metadata_options {
     http_tokens   = "required" # IMDSv2 only, security best practice
     http_endpoint = "enabled"
+  }
+
+  # Lifecycle block here to ignore the most recent AMI changes and prevent unnecessary instance replacement
+  lifecycle {
+    ignore_changes = [ami]
   }
 
   tags = {
