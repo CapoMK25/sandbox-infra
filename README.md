@@ -1,11 +1,13 @@
 # sandbox-infra
 The IaC for a Sandbox AWS account
 
-Just public Terraform templates and stuff like that to set up a web server on a sandbox account. To be updated with more documentation later on!
+Public Terraform templates and stuff like that to set up on a regional-map-2024 server on a sandbox account on AWS.
 
-# Portfolio/Where-to-Live-2024 Web Server with Terraform
+# Portfolio/Where-to-Live-2024 Server with Terraform
 
-Provisions an Amazon Linux 2023 EC2 instance with Nginx, ready to host static websites.
+Provisions an Amazon Linux 2023 EC2 instance with Nginx, ready to host static websites and a lot more.
+
+GitHub Actions has also been set up as the CI/CD solution and runs on every PR to main by checking the status of IaC first.
 
 ## What gets created
 
@@ -31,7 +33,7 @@ terraform plan
 terraform apply
 
 # 5. Connect via SSM (no SSH key needed)
-aws ssm start-session --target <instance-id> --region eu-west-1
+aws ssm start-session --target <instance-id> --region eu-north-1
 
 # 6. Deploy your site files to the instance
 #    From the SSM session on the instance:
@@ -52,4 +54,4 @@ The Nginx document root is `/usr/share/nginx/html/`.
 - IMDSv2 is enforced (no legacy metadata endpoint)
 - Root volume is encrypted
 - SSH is open to 0.0.0.0/0 by default — lock it to your IP in terraform.tfvars
-- SSM access means you can remove SSH ingress entirely if you prefer
+- SSM access means you can remove SSH ingress entirely if you prefer that
